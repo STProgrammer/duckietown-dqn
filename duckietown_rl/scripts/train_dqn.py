@@ -30,9 +30,9 @@ env = launch_env()
 seed(args.seed)
 
 state_dim = env.observation_space.shape
-print(state_dim)
+print("state dim", state_dim)
 action_dim = env.action_space.n
-print(action_dim)
+print("action dim", action_dim)
 
 # Initialize the DQN model
 model = None # Your Code Here
@@ -46,7 +46,9 @@ total_timesteps = 0
 episode_num = 0
 done = True
 episode_reward = None
+episode_timesteps = 0
 eps = args.eps_start
+eps_decay = args.eps_decay
 while total_timesteps < args.max_timesteps:
 
     if done:
@@ -75,12 +77,14 @@ while total_timesteps < args.max_timesteps:
 
         # Decay epsilon
         # Your Code Here
+        eps = eps*eps_decay
 
     # Select action based on epsilon-greedy policy
     # Your Code Here
     if random.random() < eps:
-        pass
+        action = torch.tensor([[random.randrange(action_dim)]], dtype=torch.long)
     else:
+        
         pass
 
     # Perform action
