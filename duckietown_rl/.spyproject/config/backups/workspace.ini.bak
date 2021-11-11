@@ -6,5 +6,5 @@ save_non_project_files = False
 
 [main]
 version = 0.2.0
-recent_files = ['pytorch_models/readme.txt', 'dqn.py', 'scripts/test_dqn.py', 'scripts/train_dqn.py', 'utils.py']
+recent_files = ['pytorch_models/readme.txt', 'dqn.py', 'scripts/train_dqn.py', 'utils.py', 'args.py', 'env.py', 'scripts/test_dqn.py']
 

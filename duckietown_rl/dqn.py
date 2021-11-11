@@ -42,7 +42,9 @@ class Network(nn.Module):
         # Define the forward pass
         # Your Code Here
         x = x.to(device)
-        x = F.relu(self.bn1(self.conv1(x)))
+   #     x = torch.tensor(x, dtype=torch.double)
+        v = self.conv1(x)
+        x = F.relu(self.bn1(v))
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.relu(self.bn3(self.conv3(x)))
         x = x.view(x.size(0), -1)
@@ -58,9 +60,9 @@ class DQN(object):
 
         # Define the Q network and the target network (move to the device)
         # Your Code Here
-        self.value_net = Network(state_dim, action_dim)
+        self.value_net = Network(state_dim, action_dim).double()
         self.value_net.to(device)
-        self.target_net = Network(state_dim, action_dim)
+        self.target_net = Network(state_dim, action_dim).double()
         self.target_net.to(device)
         self.target_net.eval()
         
@@ -71,11 +73,11 @@ class DQN(object):
 
         # Define an optimizer with a learning rate
         # Your Code Here
-        self.optimizer = torch.optim.RMSProp(self.value_net.parameters(), lr=0.1, decay_rate=0.5)
+        self.optimizer = torch.optim.RMSprop(self.value_net.parameters(), lr=0.001, weight_decay=0.5)
 
         # Define the loss criterion
         # Your Code Here
-        self.criterion = nn.MSELoss()
+        self.criterion = nn.MSELoss().to(device)
 
 
     def predict(self, state):
@@ -85,10 +87,10 @@ class DQN(object):
 
         # Return the action with the highest Q value (action is either 0, 1 or 2 for Left, Right and Straight respectively)
         # Your Code Here
-        input_val = torch.from_numpy(state)
+        input_val = torch.from_numpy(state).unsqueeze(0)
         
-        output_val = self.value_net(input_val).max(1)[1].view(1, 1)
-        print("output_val", output_val)
+        output_val = self.value_net(input_val).max(1)[1].item()
+        # print("output_val", output_val)
         return output_val
         
 
@@ -96,25 +98,48 @@ class DQN(object):
         for _ in range(iterations):
             # Get a sample from the replay buffer
             # Your Code Here
-            sample = replay_buffer.sample()
+            sample = replay_buffer.sample(batch_size)
 
-            state = torch.FloatTensor(sample["state"]).to(device)
+            state = torch.DoubleTensor(sample["state"]).to(device)
             action = torch.LongTensor(sample["action"]).to(device)
-            next_state = torch.FloatTensor(sample["next_state"]).to(device)
-            done = torch.FloatTensor(1 - sample["done"]).to(device)
-            reward = torch.FloatTensor(sample["reward"]).to(device)
+            next_state = torch.DoubleTensor(sample["next_state"]).to(device)
+            done = torch.DoubleTensor(1 - sample["done"]).to(device)
+            reward = torch.DoubleTensor(sample["reward"]).to(device)
 
             # Compute the target Q value
             # Your Code Here
-            target_action = self.target_net(state).max(1)[1].view(1, 1)
+            
+            # print("ACTION INSIDE TRAIN", action)
+            # print("STATE INSIDE TRAIN", state)
+            # print("NEXT STATE INSIDE TRAIN", next_state)
+            # print("REWARD INSIDE TRAIN", reward)
+            # print("DONE INSIDE TRAIN", done)
+
+            # TO DO copy state_q
+            
+            state_q = self.value_net(state)
+            with torch.no_grad():
+                # state_q = self.value_net(state)
+                next_state_max_q = torch.max(self.target_net(next_state), dim=1)[0]
+            
+            target_q = reward.squeeze() + discount*next_state_max_q * done.squeeze()
+            action = action.type(torch.LongTensor).squeeze()
+            
+            target_state_q = state_q.clone().detach().to(device)
+            target_state_q[torch.arange(state_q.shape[0]), action] = target_q
+                
             
 
             # Compute loss
-            loss = criterion(action, target_action)
+            loss = self.criterion(state_q, target_state_q)
             # Your Code Here
 
             # Optimizing steps (backward pass, gradient updates ...)
-            # Your Code Here
+            # Your code here
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
+            
 
             # Update target network 
             self.update_target()
@@ -122,7 +147,7 @@ class DQN(object):
     def update_target(self, tau=0.001):
         # Update the frozen target model
         for param, target_param in zip(self.value_net.parameters(), self.target_net.parameters()):            
-            new_target_param = None # Your Code Here (Soft update formula)
+            new_target_param = tau * target_param + (1 - tau) * param # Your Code Here (Soft update formula)
             target_param.data.copy_(new_target_param)
 
     def save(self, filename, directory):

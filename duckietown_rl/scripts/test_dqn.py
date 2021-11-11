@@ -16,6 +16,8 @@ file_name = "{}_{}".format(
     args.seed
 )
 
+directory = '../pytorch_models'
+
 env = launch_env()
 
 state_dim = env.observation_space.shape
@@ -24,10 +26,12 @@ action_dim = env.action_space.n
 print(action_dim)
 
 # Initialize model
-model = None # Your Code Here
+model = DQN(state_dim, action_dim) # Your Code Here
 
 # Load model from file
 # Your Code Here
+model.load(file_name, directory)
+
 
 for _ in range(args.episodes):
     done = False
@@ -37,17 +41,22 @@ for _ in range(args.episodes):
     while True:
         # Render environment
         # Your Code Here
+        env.render()
 
         # Get optimal action according to the DQN model
         # Your Code Here
+        action = model.predict(obs)
 
         # Perform action
         # Your Code Here
+        new_obs, reward, done, _ = env.step(action)
+        obs = new_obs
 
         steps += 1
 
         # Append reward
         # Your Code Here
+        rewards.append(reward)
 
         if done or steps >= args.env_timesteps:
             break
