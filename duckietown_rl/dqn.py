@@ -8,13 +8,12 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 
-# This is code is partly taken and edited from pytorch.org https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
+# This code is partly taken and edited from pytorch.org https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
 class Network(nn.Module):
     def __init__(self, state_dim, action_dim):
 
         super(Network, self).__init__()
         # Define the layers of the CNN
-        # Your Code Here
         d, w, h = state_dim
         fcls = 16 # Size of first convolution layer
         self.conv1 = nn.Conv2d(d, fcls, kernel_size=5, stride=2, padding=1)
@@ -40,7 +39,6 @@ class Network(nn.Module):
 
     def forward(self, x):
         # Define the forward pass
-        # Your Code Here
         x = x.to(device)
         v = self.conv1(x)
         x = F.relu(self.bn1(v))
@@ -58,7 +56,6 @@ class DQN(object):
         self.action_dim = action_dim
 
         # Define the Q network and the target network (move to the device)
-        # Your Code Here
         self.value_net = Network(state_dim, action_dim).float()
         self.value_net.to(device)
         self.target_net = Network(state_dim, action_dim).float()
@@ -66,16 +63,13 @@ class DQN(object):
         self.target_net.eval()
         
         # Use load_state_dict to load the same weight of Q network to the target
-        # Your Code Here
         self.target_net.load_state_dict(self.value_net.state_dict())
         
 
         # Define an optimizer with a learning rate
-        # Your Code Here
         self.optimizer = torch.optim.RMSprop(self.value_net.parameters(), lr=0.001, weight_decay=0.5)
 
         # Define the loss criterion
-        # Your Code Here
         self.criterion = nn.MSELoss().to(device)
 
 
@@ -105,17 +99,7 @@ class DQN(object):
             done = torch.FloatTensor(1 - sample["done"]).to(device)
             reward = torch.FloatTensor(sample["reward"]).to(device)
 
-            # Compute the target Q value
-            # Your Code Here
-            
-            # print("ACTION INSIDE TRAIN", action)
-            # print("STATE INSIDE TRAIN", state)
-            # print("NEXT STATE INSIDE TRAIN", next_state)
-            # print("REWARD INSIDE TRAIN", reward)
-            # print("DONE INSIDE TRAIN", done)
-
-            # TO DO copy state_q
-            
+            # Compute the target Q value           
             state_q = self.value_net(state)
             with torch.no_grad():
                 # state_q = self.value_net(state)
@@ -128,13 +112,11 @@ class DQN(object):
             target_state_q[torch.arange(state_q.shape[0]), action] = target_q
                 
             
-
             # Compute loss
             loss = self.criterion(state_q, target_state_q)
-            # Your Code Here
+
 
             # Optimizing steps (backward pass, gradient updates ...)
-            # Your code here
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()

@@ -32,15 +32,15 @@ env = launch_env()
 seed(args.seed)
 
 state_dim = env.observation_space.shape
-print("state dim", state_dim)
+
 action_dim = env.action_space.n
-print("action dim", action_dim)
+
 
 # Initialize the DQN model
-model = DQN(state_dim, action_dim) # Your Code Here
+model = DQN(state_dim, action_dim)
 
 # Instantiate a replay buffer with max_size = args.replay_buffer_max_size
-replay_buffer = ReplayBuffer() # Your Code Here
+replay_buffer = ReplayBuffer(args.replay_buffer_max_size)
 
 
 rewards = []
@@ -62,11 +62,9 @@ while total_timesteps < args.max_timesteps:
                 total_timesteps, episode_num, episode_timesteps, episode_reward))
 
             # Train the model for episode_timesteps iterations
-            # Your Code Here
             model.train(replay_buffer, episode_timesteps)
             
             # Append episode reward to the list of rewards
-            # Your Code Here
             rewards.append(episode_reward)
 
             # Save model
@@ -81,11 +79,9 @@ while total_timesteps < args.max_timesteps:
         episode_num += 1
 
         # Decay epsilon
-        # Your Code Here
         eps = eps*eps_decay
 
     # Select action based on epsilon-greedy policy
-    # Your Code Here
     if random.random() < eps:
         action = np.random.randint(0, action_dim)
     else:
@@ -93,7 +89,7 @@ while total_timesteps < args.max_timesteps:
         
 
     # Perform action
-    new_obs, reward, done, _ = env.step(action) # Your Code Here
+    new_obs, reward, done, _ = env.step(action)
 
     if episode_timesteps >= args.env_timesteps:
         done = True
@@ -101,15 +97,12 @@ while total_timesteps < args.max_timesteps:
     done_bool = 0 if episode_timesteps + 1 == args.env_timesteps else float(done)
 
     # Update the episode reward
-    # Your Code Here
     episode_reward += reward
 
     # Store experience in replay buffer
-    # Your Code Here
     replay_buffer.add(obs, new_obs, action, reward, done)
 
     # Update obs to the new obs
-    # Your Code Here
     obs = new_obs
 
     episode_timesteps += 1
@@ -118,7 +111,6 @@ while total_timesteps < args.max_timesteps:
 
 if args.save_models:
     # Save the trained model
-    # Your Code Here
     model.save(file_name, directory)
 
 
@@ -142,7 +134,7 @@ ax.plot(x, rewards, label = 'reward')
 plt.xlabel("Episodes")
 plt.ylabel("Rewards")
 
-#plt.ylim(10e-35, 10e+01)
+
 plt.title("Rewards from training DQN")
 plt.legend()
 plt.grid()
