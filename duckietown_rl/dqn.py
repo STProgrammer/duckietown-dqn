@@ -42,7 +42,6 @@ class Network(nn.Module):
         # Define the forward pass
         # Your Code Here
         x = x.to(device)
-   #     x = torch.tensor(x, dtype=torch.double)
         v = self.conv1(x)
         x = F.relu(self.bn1(v))
         x = F.relu(self.bn2(self.conv2(x)))
@@ -60,9 +59,9 @@ class DQN(object):
 
         # Define the Q network and the target network (move to the device)
         # Your Code Here
-        self.value_net = Network(state_dim, action_dim).double()
+        self.value_net = Network(state_dim, action_dim).float()
         self.value_net.to(device)
-        self.target_net = Network(state_dim, action_dim).double()
+        self.target_net = Network(state_dim, action_dim).float()
         self.target_net.to(device)
         self.target_net.eval()
         
@@ -87,7 +86,7 @@ class DQN(object):
 
         # Return the action with the highest Q value (action is either 0, 1 or 2 for Left, Right and Straight respectively)
         # Your Code Here
-        input_val = torch.from_numpy(state).unsqueeze(0)
+        input_val = torch.from_numpy(state).unsqueeze(0).float()
         
         output_val = self.value_net(input_val).max(1)[1].item()
         # print("output_val", output_val)
@@ -100,11 +99,11 @@ class DQN(object):
             # Your Code Here
             sample = replay_buffer.sample(batch_size)
 
-            state = torch.DoubleTensor(sample["state"]).to(device)
+            state = torch.FloatTensor(sample["state"]).to(device)
             action = torch.LongTensor(sample["action"]).to(device)
-            next_state = torch.DoubleTensor(sample["next_state"]).to(device)
-            done = torch.DoubleTensor(1 - sample["done"]).to(device)
-            reward = torch.DoubleTensor(sample["reward"]).to(device)
+            next_state = torch.FloatTensor(sample["next_state"]).to(device)
+            done = torch.FloatTensor(1 - sample["done"]).to(device)
+            reward = torch.FloatTensor(sample["reward"]).to(device)
 
             # Compute the target Q value
             # Your Code Here
