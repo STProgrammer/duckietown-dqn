@@ -52,6 +52,7 @@ episode_timesteps = 0
 eps = args.eps_start
 eps_decay = args.eps_decay
 reward = 0
+actions = list()
 while total_timesteps < args.max_timesteps:
 
     if done:
@@ -85,7 +86,8 @@ while total_timesteps < args.max_timesteps:
     if random.random() < eps:
         action = np.random.randint(0, action_dim)
     else:
-        action = model.predict(obs) 
+        action = model.predict(obs)
+        actions.append(action)
         
 
     # Perform action
@@ -118,7 +120,7 @@ if args.save_models:
 ## Plotting results
 import matplotlib.pyplot as plt
 
-x = np.linspace(0, episode_num - 1, episode_num - 1)
+x = np.linspace(1, episode_num-1, episode_num-1)
 fig, ax = plt.subplots(figsize=(15,10))
 
 print(x)
@@ -140,6 +142,32 @@ plt.legend()
 plt.grid()
 plt.plot()
 plt.show()
+
+
+## Save results
+
+rewards_to_file = np.asarray(rewards)
+
+from tempfile import TemporaryFile
+
+outfile = TemporaryFile()
+
+outfile = '../results/results.npz'
+
+np.savez(outfile, x, rewards_to_file)
+
+files = np.load(outfile)
+
+filenames = files.files
+
+print(files[filenames[0]])
+
+print(files[filenames[1]])
+
+print("Actions", actions)
+
+
+
 
 
 

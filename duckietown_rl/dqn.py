@@ -15,25 +15,27 @@ class Network(nn.Module):
         super(Network, self).__init__()
         # Define the layers of the CNN
         d, w, h = state_dim
-        fcls = 16 # Size of first convolution layer
-        self.conv1 = nn.Conv2d(d, fcls, kernel_size=5, stride=2, padding=1)
+        fcls = 32 # Size of first convolution layer
+        self.conv1 = nn.Conv2d(d, fcls, kernel_size=3, stride=1, padding=1)
         self.bn1 = nn.BatchNorm2d(fcls)
-        self.conv2 = nn.Conv2d(fcls, fcls*2, kernel_size=5, stride=2, padding=1)
-        self.bn2 = nn.BatchNorm2d(fcls*2)
-        self.conv3 = nn.Conv2d(fcls*2, fcls*2, kernel_size=5, stride=2, padding=1)
+        self.conv2 = nn.Conv2d(fcls, fcls, kernel_size=3, stride=1, padding=1)
+        self.bn2 = nn.BatchNorm2d(fcls)
+        self.conv3 = nn.Conv2d(fcls, fcls*2, kernel_size=3, stride=1, padding=1)
+        self.pool = nn.MaxPool2d(2,2)
         self.bn3 = nn.BatchNorm2d(fcls*2)
         
         # Number of Linear input connections depends on output of conv2d layers
         # and therefore the input image size, so compute it.
-        def conv2d_size_out(size, kernel_size = 5, stride = 2, padding=1):
-            return (size - kernel_size + 2*padding) // stride  + 1
+        def conv2d_size_out(size, kernel_size = 3, stride = 1, padding=1, pooling=2):
+            return ((size - kernel_size + 2*padding) // stride  + 1) // pooling
         
         convw = conv2d_size_out(conv2d_size_out(conv2d_size_out(w)))
         convh = conv2d_size_out(conv2d_size_out(conv2d_size_out(h)))
         linear_input_size = convw * convh * fcls*2
         
-        self.fc_1 = nn.Linear(linear_input_size, 256)
-        self.output = nn.Linear(256, action_dim)
+        self.dropout = nn.Dropout(0.3)
+        self.fc_1 = nn.Linear(linear_input_size, 128)
+        self.output = nn.Linear(128, action_dim)
         
         
 
@@ -41,10 +43,11 @@ class Network(nn.Module):
         # Define the forward pass
         x = x.to(device)
         v = self.conv1(x)
-        x = F.relu(self.bn1(v))
-        x = F.relu(self.bn2(self.conv2(x)))
-        x = F.relu(self.bn3(self.conv3(x)))
+        x = self.pool(F.relu(v))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = self.pool(F.relu(self.conv3(x)))
         x = x.view(x.size(0), -1)
+        #x = self.dropout(x)
         x = self.fc_1(x)
         return self.output(x)
 
@@ -67,7 +70,7 @@ class DQN(object):
         
 
         # Define an optimizer with a learning rate
-        self.optimizer = torch.optim.RMSprop(self.value_net.parameters(), lr=0.001, weight_decay=0.5)
+        self.optimizer = torch.optim.RMSprop(self.value_net.parameters(), lr=0.00005, weight_decay=0.9)
 
         # Define the loss criterion
         self.criterion = nn.MSELoss().to(device)
@@ -79,11 +82,9 @@ class DQN(object):
         assert state.shape[0] == 3
 
         # Return the action with the highest Q value (action is either 0, 1 or 2 for Left, Right and Straight respectively)
-        # Your Code Here
         input_val = torch.from_numpy(state).unsqueeze(0).float()
-        
-        output_val = self.value_net(input_val).max(1)[1].item()
-        # print("output_val", output_val)
+        with torch.no_grad():
+            output_val = self.value_net(input_val).max(1)[1].item()
         return output_val
         
 
@@ -100,9 +101,10 @@ class DQN(object):
             reward = torch.FloatTensor(sample["reward"]).to(device)
 
             # Compute the target Q value           
+            self.optimizer.zero_grad()
+            
             state_q = self.value_net(state)
             with torch.no_grad():
-                # state_q = self.value_net(state)
                 next_state_max_q = torch.max(self.target_net(next_state), dim=1)[0]
             
             target_q = reward.squeeze() + discount*next_state_max_q * done.squeeze()
@@ -110,14 +112,12 @@ class DQN(object):
             
             target_state_q = state_q.clone().detach().to(device)
             target_state_q[torch.arange(state_q.shape[0]), action] = target_q
-                
             
             # Compute loss
             loss = self.criterion(state_q, target_state_q)
 
 
             # Optimizing steps (backward pass, gradient updates ...)
-            self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
             
