@@ -22,7 +22,7 @@ def get_dqn_args_train():
 def get_dqn_args_test():
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", default=2502, type=int)  # Inform the test what seed was used in training
-    parser.add_argument("--episodes", default=2, type=int) # Number of Episodes
-    parser.add_argument("--env_timesteps", default=500, type=int)  # Maximum timesteps of one episode
+    parser.add_argument("--episodes", default=10, type=int) # Number of Episodes
+    parser.add_argument("--env_timesteps", default=3000, type=int)  # Maximum timesteps of one episode
     
     return parser.parse_args()

@@ -12,8 +12,11 @@ from dqn import DQN
 from utils import seed, ReplayBuffer
 from env import launch_env
 
+import time
 
 model_name = "DQN"
+
+start_time = time.time()
 
 print(f"Using {'cuda' if torch.cuda.is_available() else 'cpu'}")
 
@@ -164,9 +167,10 @@ print(files[filenames[0]])
 
 print(files[filenames[1]])
 
-print("Actions", actions)
 
+end_time = time.time()
 
+print("Total time spent", (end_time - start_time))
 
 
 

@@ -42,12 +42,11 @@ class Network(nn.Module):
     def forward(self, x):
         # Define the forward pass
         x = x.to(device)
-        v = self.conv1(x)
-        x = self.pool(F.relu(v))
+        x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
         x = self.pool(F.relu(self.conv3(x)))
         x = x.view(x.size(0), -1)
-        #x = self.dropout(x)
+        x = self.dropout(x)
         x = self.fc_1(x)
         return self.output(x)
 
@@ -89,7 +88,8 @@ class DQN(object):
         
 
     def train(self, replay_buffer, iterations, batch_size=32, discount=0.99):
-        for _ in range(iterations):
+        C = 50 # Rate to update target network
+        for i in range(iterations):
             # Get a sample from the replay buffer
             # Your Code Here
             sample = replay_buffer.sample(batch_size)
@@ -121,9 +121,14 @@ class DQN(object):
             loss.backward()
             self.optimizer.step()
             
-
-            # Update target network 
+            # Update target network every C step
+            if i % C == 0:
+                self.update_target()
+        
+        # Update target network at least once
+        if C > iterations:
             self.update_target()
+
 
     def update_target(self, tau=0.001):
         # Update the frozen target model
