@@ -33,7 +33,7 @@ class Network(nn.Module):
         convh = conv2d_size_out(conv2d_size_out(conv2d_size_out(h)))
         linear_input_size = convw * convh * fcls*2
         
-        self.dropout = nn.Dropout(0.3)
+        self.dropout = nn.Dropout(0.1)
         self.fc_1 = nn.Linear(linear_input_size, 128)
         self.output = nn.Linear(128, action_dim)
         
@@ -46,7 +46,7 @@ class Network(nn.Module):
         x = self.pool(F.relu(self.conv2(x)))
         x = self.pool(F.relu(self.conv3(x)))
         x = x.view(x.size(0), -1)
-        x = self.dropout(x)
+        #x = self.dropout(x)
         x = self.fc_1(x)
         return self.output(x)
 
@@ -82,13 +82,14 @@ class DQN(object):
 
         # Return the action with the highest Q value (action is either 0, 1 or 2 for Left, Right and Straight respectively)
         input_val = torch.from_numpy(state).unsqueeze(0).float()
+
         with torch.no_grad():
             output_val = self.value_net(input_val).max(1)[1].item()
         return output_val
         
 
     def train(self, replay_buffer, iterations, batch_size=32, discount=0.99):
-        C = 50 # Rate to update target network
+        C = 10 # Rate to update target network
         for i in range(iterations):
             # Get a sample from the replay buffer
             # Your Code Here
