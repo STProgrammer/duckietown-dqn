@@ -54,6 +54,7 @@ episode_reward = None
 episode_timesteps = 0
 eps = args.eps_start
 eps_decay = args.eps_decay
+eps_end = args.eps_end
 reward = 0
 actions = list()
 while total_timesteps < args.max_timesteps:
@@ -83,7 +84,7 @@ while total_timesteps < args.max_timesteps:
         episode_num += 1
 
         # Decay epsilon
-        eps = eps*eps_decay
+        eps = max(eps * eps_decay, args.eps_end)
 
     # Select action based on epsilon-greedy policy
     if random.random() < eps:

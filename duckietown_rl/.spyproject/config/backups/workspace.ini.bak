@@ -8,5 +8,5 @@ recent_files = ['scripts/train_dqn.py', '../../../Downloads/algo_Dqn/run_dqn.py'
 
 [main]
 version = 0.2.0
-recent_files = ['../../../.config/spyder-py3/temp.py', '../../../../../tmp/kite_tutorial.py']
+recent_files = ['scripts/train_dqn.py', 'dqn.py', 'args.py', 'scripts/test_dqn.py', 'env.py']
 
