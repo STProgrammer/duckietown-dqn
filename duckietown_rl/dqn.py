@@ -17,12 +17,10 @@ class Network(nn.Module):
         d, w, h = state_dim
         fcls = 32 # Size of first convolution layer
         self.conv1 = nn.Conv2d(d, fcls, kernel_size=3, stride=1, padding=1)
-        self.bn1 = nn.BatchNorm2d(fcls)
         self.conv2 = nn.Conv2d(fcls, fcls, kernel_size=3, stride=1, padding=1)
-        self.bn2 = nn.BatchNorm2d(fcls)
         self.conv3 = nn.Conv2d(fcls, fcls*2, kernel_size=3, stride=1, padding=1)
         self.pool = nn.MaxPool2d(2,2)
-        self.bn3 = nn.BatchNorm2d(fcls*2)
+
         
         # Number of Linear input connections depends on output of conv2d layers
         # and therefore the input image size, so compute it.
@@ -73,6 +71,9 @@ class DQN(object):
 
         # Define the loss criterion
         self.criterion = nn.MSELoss().to(device)
+        
+        # track of how many timesteps to update target network
+        self.c_step = 0
 
 
     def predict(self, state):
@@ -89,7 +90,7 @@ class DQN(object):
         
 
     def train(self, replay_buffer, iterations, batch_size=32, discount=0.99):
-        C = 10 # Rate to update target network
+        C = 50 # Rate to update target network
         for i in range(iterations):
             # Get a sample from the replay buffer
             # Your Code Here
@@ -123,12 +124,10 @@ class DQN(object):
             self.optimizer.step()
             
             # Update target network every C step
-            if i % C == 0:
+            self.c_step += 1
+            if self.c_step % C == 0:
                 self.update_target()
-        
-        # Update target network at least once
-        if C > iterations:
-            self.update_target()
+
 
 
     def update_target(self, tau=0.001):
