@@ -90,7 +90,7 @@ class DQN(object):
         
 
     def train(self, replay_buffer, iterations, batch_size=32, discount=0.99):
-        C = 50 # Rate to update target network
+        C = 250 # Rate to update target network
         for i in range(iterations):
             # Get a sample from the replay buffer
             # Your Code Here

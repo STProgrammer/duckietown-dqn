@@ -31,6 +31,7 @@ model = DQN(state_dim, action_dim) # Your Code Here
 # Load model from file
 model.load(file_name, directory)
 
+mean_rewards = list()
 
 for _ in range(args.episodes):
     done = False
@@ -55,4 +56,8 @@ for _ in range(args.episodes):
 
         if done or steps >= args.env_timesteps:
             break
-    print("mean episode reward:", np.mean(rewards))
+    mean_r = np.mean(rewards)
+    mean_rewards.append(mean_r)
+    print("mean episode reward:", mean_r)
+    
+print("Mean rewards", mean_rewards)
