@@ -31,13 +31,15 @@ model = DQN(state_dim, action_dim) # Your Code Here
 # Load model from file
 model.load(file_name, directory)
 
-mean_rewards = list()
+mean_step_rewards_for_all = list()
+sum_rewards_for_all = list()
 
 for _ in range(args.episodes):
     done = False
     obs = env.reset()
     steps = 0
     rewards = []
+    sum_reward = 0
     while True:
         # Render environment
         env.render()
@@ -53,11 +55,21 @@ for _ in range(args.episodes):
 
         # Append reward
         rewards.append(reward)
+        sum_reward += reward
+        
+        
 
         if done or steps >= args.env_timesteps:
             break
-    mean_r = np.mean(rewards)
-    mean_rewards.append(mean_r)
-    print("mean episode reward:", mean_r)
+    sum_rewards_for_all.append(sum_reward)
     
-print("Mean rewards", mean_rewards)
+    mean_step_reward = np.mean(rewards)
+    mean_step_rewards_for_all.append(mean_step_reward)
+    print("Mean step reward for episode:", mean_step_reward)
+   
+    
+print("Mean step rewards for each episode", mean_step_rewards_for_all)
+print("Mean step reward of all episodes", np.mean(mean_step_rewards_for_all))
+
+print("Sum rewards for each episode", sum_rewards_for_all)
+print("Mean sum reward", np.mean(sum_rewards_for_all))

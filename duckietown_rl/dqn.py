@@ -32,8 +32,10 @@ class Network(nn.Module):
         linear_input_size = convw * convh * fcls*2
         
         self.dropout = nn.Dropout(0.1)
-        self.fc_1 = nn.Linear(linear_input_size, 128)
-        self.output = nn.Linear(128, action_dim)
+        self.fc_1 = nn.Linear(linear_input_size, 256)
+        self.fc_2 = nn.Linear(256, 64)
+        self.fc_3 = nn.Linear(64, 16)
+        self.output = nn.Linear(16, action_dim)
         
         
 
@@ -46,6 +48,8 @@ class Network(nn.Module):
         x = x.view(x.size(0), -1)
         #x = self.dropout(x)
         x = self.fc_1(x)
+        x = self.fc_2(x)
+        x = self.fc_3(x)
         return self.output(x)
 
 
@@ -80,17 +84,22 @@ class DQN(object):
         # The input state is a numpy array
         # Just making sure the state has the correct format, otherwise the prediction doesn't work
         assert state.shape[0] == 3
+    
 
         # Return the action with the highest Q value (action is either 0, 1 or 2 for Left, Right and Straight respectively)
         input_val = torch.from_numpy(state).unsqueeze(0).float()
 
+
+        self.value_net.eval()
         with torch.no_grad():
-            output_val = self.value_net(input_val).max(1)[1].item()
+            output = self.value_net(input_val)
+            output_val = output.max(1)[1].item()
         return output_val
         
 
     def train(self, replay_buffer, iterations, batch_size=32, discount=0.99):
-        C = 250 # Rate to update target network
+
+        self.value_net.train()
         for i in range(iterations):
             # Get a sample from the replay buffer
             # Your Code Here
@@ -107,13 +116,19 @@ class DQN(object):
             
             state_q = self.value_net(state)
             with torch.no_grad():
-                next_state_max_q = torch.max(self.target_net(next_state), dim=1)[0]
+                next_state_q = self.target_net(next_state)
+                next_state_max_q = torch.max(next_state_q, dim=1)[0]
+
             
             target_q = reward.squeeze() + discount*next_state_max_q * done.squeeze()
+            
+            
             action = action.type(torch.LongTensor).squeeze()
             
             target_state_q = state_q.clone().detach().to(device)
+            
             target_state_q[torch.arange(state_q.shape[0]), action] = target_q
+     
             
             # Compute loss
             loss = self.criterion(state_q, target_state_q)
@@ -123,10 +138,8 @@ class DQN(object):
             loss.backward()
             self.optimizer.step()
             
-            # Update target network every C step
-            self.c_step += 1
-            if self.c_step % C == 0:
-                self.update_target()
+            # Update target network
+            self.update_target()
 
 
 
