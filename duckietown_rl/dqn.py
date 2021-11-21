@@ -3,12 +3,17 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from args import get_dqn_args_train
+
+args = get_dqn_args_train()
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 
 
 # This code is partly taken and edited from pytorch.org https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
+# The model si mostly taken from: P. Almási, R. Moni and B. Gyires-Tóth, "Robust Reinforcement Learning-based Autonomous Driving Agent for Simulation and Real World," 2020 International Joint Conference on Neural Networks (IJCNN), 2020, pp. 1-8, doi: 10.1109/IJCNN48605.2020.9207497.
 class Network(nn.Module):
     def __init__(self, state_dim, action_dim):
 
@@ -31,7 +36,6 @@ class Network(nn.Module):
         convh = conv2d_size_out(conv2d_size_out(conv2d_size_out(h)))
         linear_input_size = convw * convh * fcls*2
         
-        self.dropout = nn.Dropout(0.1)
         self.fc_1 = nn.Linear(linear_input_size, 128)
         self.output = nn.Linear(128, action_dim)
         
@@ -90,7 +94,8 @@ class DQN(object):
         return output_val
         
 
-    def train(self, replay_buffer, iterations, batch_size=32, discount=0.99):
+    def train(self, replay_buffer, iterations, 
+              batch_size=args.batch_size, discount=args.discount):
 
         self.value_net.train()
         for i in range(iterations):
@@ -136,7 +141,7 @@ class DQN(object):
 
 
 
-    def update_target(self, tau=0.001):
+    def update_target(self, tau=args.tau):
         # Update the frozen target model
         for param, target_param in zip(self.value_net.parameters(), self.target_net.parameters()):            
             new_target_param = tau * target_param + (1 - tau) * param # Your Code Here (Soft update formula)
