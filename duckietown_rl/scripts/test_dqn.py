@@ -65,11 +65,11 @@ for _ in range(args.episodes):
     
     mean_step_reward = np.mean(rewards)
     mean_step_rewards_for_all.append(mean_step_reward)
-    print("Mean step reward for episode:", mean_step_reward)
+    print("Mean episode reward:", mean_step_reward)
    
     
-print("Mean step rewards for each episode", mean_step_rewards_for_all)
-print("Mean step reward of all episodes", np.mean(mean_step_rewards_for_all))
+print("Mean episode rewards for each episode", mean_step_rewards_for_all)
+print("Mean episode reward of all episodes", np.mean(mean_step_rewards_for_all))
 
-print("Sum rewards for each episode", sum_rewards_for_all)
-print("Mean sum reward", np.mean(sum_rewards_for_all))
+print("Sum episode reward for each episode", sum_rewards_for_all)
+print("Mean sum episode reward", np.mean(sum_rewards_for_all))

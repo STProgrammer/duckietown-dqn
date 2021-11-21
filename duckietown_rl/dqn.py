@@ -32,10 +32,8 @@ class Network(nn.Module):
         linear_input_size = convw * convh * fcls*2
         
         self.dropout = nn.Dropout(0.1)
-        self.fc_1 = nn.Linear(linear_input_size, 256)
-        self.fc_2 = nn.Linear(256, 64)
-        self.fc_3 = nn.Linear(64, 16)
-        self.output = nn.Linear(16, action_dim)
+        self.fc_1 = nn.Linear(linear_input_size, 128)
+        self.output = nn.Linear(128, action_dim)
         
         
 
@@ -46,10 +44,7 @@ class Network(nn.Module):
         x = self.pool(F.relu(self.conv2(x)))
         x = self.pool(F.relu(self.conv3(x)))
         x = x.view(x.size(0), -1)
-        #x = self.dropout(x)
         x = self.fc_1(x)
-        x = self.fc_2(x)
-        x = self.fc_3(x)
         return self.output(x)
 
 
@@ -71,13 +66,11 @@ class DQN(object):
         
 
         # Define an optimizer with a learning rate
-        self.optimizer = torch.optim.RMSprop(self.value_net.parameters(), lr=0.00005, weight_decay=0.9)
+        self.optimizer = torch.optim.RMSprop(self.value_net.parameters(), lr=0.00005, 
+                                             weight_decay=0.9)
 
         # Define the loss criterion
         self.criterion = nn.MSELoss().to(device)
-        
-        # track of how many timesteps to update target network
-        self.c_step = 0
 
 
     def predict(self, state):

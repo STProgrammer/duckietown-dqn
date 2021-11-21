@@ -4,7 +4,7 @@ import sys
 def get_dqn_args_train():
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", default=2502, type=int)  # Sets Gym, PyTorch and Numpy seeds
-    parser.add_argument("--max_timesteps", default=20000, type=float)  # Max time steps to run environment for
+    parser.add_argument("--max_timesteps", default=10000, type=float)  # Max time steps to run environment for
     parser.add_argument("--save_models", action="store_true", default=True)  # Whether or not the model is saved
     parser.add_argument("--save_models_freq", default=10000, type=int)  # When to save the model
     parser.add_argument("--batch_size", default=32, type=int)  # Batch size
